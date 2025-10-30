@@ -1,23 +1,26 @@
-import React, { useState } from 'react';
-
-const categories = [
-  { name: 'Perfect-Buffet', price: 799, img: 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Famous-Biryani', price: 299, img: 'https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Barbeque', price: 499, img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Chinese', price: 349, img: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Pure-veg', price: 259, img: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Luxury-Experience', price: 1199, img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Romantic', price: 899, img: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Street-Food', price: 199, img: 'https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Cafes', price: 249, img: 'https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Quick-Bites', price: 179, img: 'https://images.unsplash.com/photo-1615719413546-198b25453f85?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Desserts', price: 149, img: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80' },
-  { name: 'Healthy-Food', price: 299, img: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80' },
-];
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Hero from './Hero';
+import Footer from './Footer';
+import CartSummary from './CartSummary'; // ✅ Import here
 
 const Categories = () => {
+  const [categories, setCategories] = useState([]);
   const [cart, setCart] = useState([]);
   const [quantities, setQuantities] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get("http://127.0.0.1:8000/api/categories/")
+      .then((res) => {
+        setCategories(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching categories:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const handleQuantityChange = (name, delta) => {
     setQuantities((prev) => ({
@@ -32,14 +35,24 @@ const Categories = () => {
     alert(`${item.name} added to cart (${qty}x)`);
   };
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-xl font-semibold">
+        Loading categories...
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
+      <Hero />
       <h2 className="text-2xl font-bold mb-6 text-center">🍽 Explore Categories</h2>
 
+      {/* ✅ Category Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {categories.map((cat) => (
           <div
-            key={cat.name}
+            key={cat.id}
             className="shadow-lg rounded-2xl overflow-hidden hover:scale-105 transform transition"
           >
             <img src={cat.img} alt={cat.name} className="w-full h-40 object-cover" />
@@ -47,7 +60,6 @@ const Categories = () => {
               <h3 className="font-semibold text-lg">{cat.name}</h3>
               <p className="text-gray-600">₹{cat.price}</p>
 
-              {/* ✅ Quantity + Button in one line */}
               <div className="flex items-center justify-between mt-2">
                 <div className="flex items-center gap-3">
                   <button
@@ -79,22 +91,10 @@ const Categories = () => {
         ))}
       </div>
 
-      {/* Optional Cart Summary */}
-      {cart.length > 0 && (
-        <div className="mt-8 p-4 border-t">
-          <h3 className="text-xl font-semibold mb-2">🛍 Cart Summary</h3>
-          <ul className="list-disc ml-6 text-gray-700">
-            {cart.map((item, idx) => (
-              <li key={idx}>
-                {item.name} — {item.qty} × ₹{item.price} = ₹{item.qty * item.price}
-              </li>
-            ))}
-          </ul>
-          <p className="font-bold mt-3">
-            Total: ₹{cart.reduce((sum, i) => sum + i.price * i.qty, 0)}
-          </p>
-        </div>
-      )}
+      {/* ✅ Cart Summary as separate component */}
+      
+
+      <Footer />
     </div>
   );
 };
